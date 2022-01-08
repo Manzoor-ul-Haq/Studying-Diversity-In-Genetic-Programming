@@ -102,33 +102,40 @@ class Tree():
 		# self.printDistances(distances, len(i_children), len(j_children))
 		return distances[len(i_children), len(j_children)]
 	def tuplesSubtree(self, tree):
-		T = self.childrenPostOrderedList(tree1)
+		T = self.childrenPostOrderedList(tree)
 		subTrees = []
 
-		for i in range(len(T1)):
-			if T1[i].left and T1[i].right:
-				subTrees.append((T1[i].left.value, T1[i].right.value, T1[i].value))
-			elif T1[i].left:
-				subTrees.append((T1[i].left.value, T1[i].value))
-			elif T1[i].right:
-				subTrees.append((T1[i].right.value, T1[i].value))
+		for i in range(len(T)):
+			if T[i].left and T[i].right:
+				subTrees.append((T[i].left.value, T[i].right.value, T[i].value))
+			elif T[i].left:
+				subTrees.append((T[i].left.value, T[i].value))
+			elif T[i].right:
+				subTrees.append((T[i].right.value, T[i].value))
 
 		print(subTrees)
 		return subTrees
 
 	def union(self, subtreesTree1, subtreesTree2):
-		
+		return list(set(subtreesTree1) | set(subtreesTree2))
+
+	def intersection(self, subtreesTree1, subtreesTree2):
+		return [i for i in subtreesTree1 if i in subtreesTree2]
 
 	def jaccardIndex(self, tree1, tree2):
 		subtreesTree1 = self.tuplesSubtree(tree1)
 		subtreesTree2 = self.tuplesSubtree(tree2)
 
+		union = self.union(subtreesTree1, subtreesTree2)
+		intersection = self.intersection(subtreesTree1, subtreesTree2)
+
+		return len(intersection) / len(union)
 
 t1 = Node('f')
-t1.left = Node('d')
+t1.left = Node('c')
 t1.right = Node('e')
 t1.left.left = Node('a')
-t1.left.right = Node('c')
+t1.left.right = Node('d')
 t1.left.right.left = Node('b')
 
 t2 = Node('f')
@@ -197,14 +204,5 @@ T.printDistances(treedist, len(T1) - 1, len(T2) - 1)
 print()
 print("Distance between T1 & T2: ", treedist[len(T1) - 1][len(T2) - 1])
 
-subTrees = []
-
-for i in range(len(T1)):
-	if T1[i].left and T1[i].right:
-		subTrees.append((T1[i].left.value, T1[i].right.value, T1[i].value))
-	elif T1[i].left:
-		subTrees.append((T1[i].left.value, T1[i].value))
-	elif T1[i].right:
-		subTrees.append((T1[i].right.value, T1[i].value))
-
-print(subTrees)
+print()
+print(T.jaccardIndex(t1, t2))
