@@ -4,6 +4,8 @@ from statistics import mean
 from copy import deepcopy
 import matplotlib.pyplot as plt
 import sys
+import numpy as np
+from ted import Tree
 
 POP_SIZE        = 60   # population size
 MIN_DEPTH       = 2    # minimal initial random tree depth
@@ -138,13 +140,23 @@ def fitness(individual, dataset): # inverse mean absolute error over dataset nor
 def selection(population, fitnesses): # select one individual using tournament selection
     tournament = [randint(0, len(population)-1) for i in range(TOURNAMENT_SIZE)] # select tournament contenders
     tournament_fitnesses = [fitnesses[tournament[i]] for i in range(TOURNAMENT_SIZE)]
-    return deepcopy(population[tournament[tournament_fitnesses.index(max(tournament_fitnesses))]]) 
+    return deepcopy(population[tournament[tournament_fitnesses.index(max(tournament_fitnesses))]])
+
+def similarityMatrix(self, list1):
+        matrix = np.zeros((len(list1), len(list1)))
+        list2 = list1
+        for i in list1:
+            for j in llist2:
+                matrix[i][j] = Tree.jaccardIndex(i, j)
+
+        print(matrix)
+        return matrix
             
 def main():
     # init stuff
     seed() # init internal state of random number generator
     man, zoor, dataset = generate_dataset()
-    population= init_population() 
+    population= init_population()
     best_of_run = None
     best_of_run_f = 0
     best_of_run_gen = 0
@@ -159,7 +171,7 @@ def main():
             parent1.crossover(parent2)
             parent1.mutation()
             nextgen_population.append(parent1)
-        population=nextgen_population
+        population = nextgen_population
         fitnesses = [fitness(population[i], dataset) for i in range(POP_SIZE)]
         if max(fitnesses) > best_of_run_f:
             best_of_run_f = max(fitnesses)
