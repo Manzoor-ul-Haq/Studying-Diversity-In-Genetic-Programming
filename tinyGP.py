@@ -179,9 +179,9 @@ class GPTree:
                     break
                 j += 1
             i += 1 
-        print(union)
-        print(temp1)
-        print(temp2)
+        # print(union)
+        # print(temp1)
+        # print(temp2)
 
         for i in range(len(temp1)):
             union.append(temp1[i])
@@ -242,7 +242,7 @@ class GPTree:
 
     def intersection(self, subtreesTree1, subtreesTree2):
         intersection = []
-
+        
         for i in range(len(subtreesTree1)):
             if subtreesTree1[i] in subtreesTree2:
                 intersection.append(subtreesTree1[i])
@@ -254,8 +254,8 @@ class GPTree:
         subtreesTree1 = self.tuplesSubtree(tree1)
         subtreesTree2 = self.tuplesSubtree(tree2)
 
-        union = self.union(subtreesTree1, subtreesTree2)
         intersection = self.intersection(subtreesTree1, subtreesTree2)
+        union = self.union(subtreesTree1, subtreesTree2)
 
         return len(intersection) / len(union)
 
@@ -316,10 +316,10 @@ def main():
     man, zoor, dataset = generate_dataset()
     population= init_population()
     t = GPTree()
-    # array = t.similarityMatrix(population)
+    array = t.similarityMatrix(population)
     # array = t.union([1,2,3,2,5,3,1,1,2,3], [1,2,3,2,5,3,1,8])
-    array = t.union([1,2,3,2,5,3,1,1,2,3], [1,2,3,2,5,3,1,8])
-    print(array)
+    # array = t.union([1,2,3,2,5,3,1,1,2,3], [1,2,3,2,5,3,1,8])
+    # print(array)
     sys.exit()
     for i in range(len(array[0])):
         print(array[i][i], end=", ")
