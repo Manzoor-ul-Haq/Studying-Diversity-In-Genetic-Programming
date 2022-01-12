@@ -5,7 +5,6 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 import sys
 import numpy as np
-from ted import Tree
 
 POP_SIZE        = 60   # population size
 MIN_DEPTH       = 2    # minimal initial random tree depth
@@ -36,13 +35,14 @@ def generate_dataset(): # generate 101 data points from target_func
         dataset.append([x, t])
     return arrayX, arrayY, dataset
 
-man, zoor, ul = generate_dataset()
-plt.plot(man, zoor)
-plt.show()
+# man, zoor, ul = generate_dataset()
+# plt.plot(man, zoor)
+# plt.show()
 
 #sys.exit()
 
 class GPTree:
+    postOrderedList = []
     def __init__(self, data = None, left = None, right = None):
         self.data  = data
         self.left  = left
@@ -59,8 +59,8 @@ class GPTree:
         if self.left:  self.left.print_tree (prefix + "   ")
         if self.right: self.right.print_tree(prefix + "   ")
 
-    def compute_tree(self, x): 
-        if (self.data in FUNCTIONS): 
+    def compute_tree(self, x):
+        if (self.data in FUNCTIONS):
             return self.data(self.left.compute_tree(x), self.right.compute_tree(x))
         elif self.data == 'x': return x
         else: return self.data
@@ -119,6 +119,174 @@ class GPTree:
         if random() < XO_RATE:
             second = other.scan_tree([randint(1, other.size())], None) # 2nd random subtree
             self.scan_tree([randint(1, self.size())], second) # 2nd subtree "glued" inside 1st tree
+
+    def children(self, node):
+        if node:
+            self.children(node.left)
+            self.children(node.right)
+            self.postOrderedList.append(node)
+
+    def childrenPostOrderedList(self, node):
+        self.children(node)
+        childrenList = self.postOrderedList
+        self.postOrderedList = []
+        return childrenList
+
+    def tuplesSubtree(self, tree):
+        T = self.childrenPostOrderedList(tree)
+        subTrees = []
+
+        for i in range(len(T)):
+            if T[i].left and T[i].right:
+                subTrees.append((T[i].left.data, T[i].right.data, T[i].data))
+            elif T[i].left:
+                subTrees.append((T[i].left.data, T[i].data))
+            elif T[i].right:
+                subTrees.append((T[i].right.data, T[i].data))
+
+        # print(subTrees)
+        return subTrees
+
+    def union(self, subtreesTree1, subtreesTree2):
+        # if subtreesTree1 == subtreesTree2:
+        #     return subtreesTree1 or subtreesTree2
+        
+        union = []
+
+        temp1 = subtreesTree1
+        temp2 = subtreesTree2
+        # counter = 0
+        # while(counter < (len(temp1) * len(temp2))):
+        #     # print(len(temp1), len(temp2))
+        #     for i in range(len(temp1)):
+        #         for j in range(len(temp2)):
+        #             if temp1[i] == temp2[j]:
+        #                 t1 = temp1.pop(temp1.index(temp1[i]))
+        #                 t2 = temp2.pop(temp2.index(temp2[j]))
+        #                 union.append(t1)
+        #                 break
+        #         break
+        #     counter += 1
+        i, j = 0, 0
+        while(i < len(temp1)):
+            while(j < len(temp2)):
+                if temp1[i] == temp2[j]:
+                    t1 = temp1.pop(temp1.index(temp1[i]))
+                    t2 = temp2.pop(temp2.index(temp2[j]))
+                    union.append(t1)
+                    i = -1
+                    j = -1
+                    break
+                j += 1
+            i += 1 
+        print(union)
+        print(temp1)
+        print(temp2)
+
+        for i in range(len(temp1)):
+            union.append(temp1[i])
+
+        for i in range(len(temp2)):
+            union.append(temp2[i])
+
+        # print(union)
+        # sys.exit()
+        
+        # for i in range(len(subtreesTree1)):
+        #     if not subtreesTree1[i] in subtreesTree2:
+        #         union.append(subtreesTree1[i])
+
+        # for i in range(len(subtreesTree2)):
+        #     if not subtreesTree2[i] in subtreesTree1:
+        #         union.append(subtreesTree2[i])
+
+        # for i in range(len(subtreesTree1)):
+        #     for j in range(len(subtreesTree2)):
+        #         if (subtreesTree1[i] == subtreesTree2[j]) and not subtreesTree2[j] in union:
+        #             union.append(subtreesTree1[i])        
+
+        # for i in range(len(subtreesTree1)):
+        #     for j in range(len(subtreesTree2)):
+        #         if (subtreesTree1[i] == subtreesTree2[j]) and not subtreesTree2[j] in temp:
+        #             temp.append(subtreesTree1[i])
+
+        # for i in temp:
+        #     count = 0
+        #     for j in subtreesTree1:
+        #         if i == j:
+        #             count += 1
+        #     temp1.append(count)
+            
+        #     count = 0
+        #     for j in subtreesTree2:
+        #         if i == j:
+        #             count += 1
+        #     temp2.append(count)
+
+        # for i in range(len(temp)):
+        #     diff = temp1[i] - temp2[i]
+        #     if diff > 0:
+        #         temp3.append(diff)
+        #     if diff < 0:
+        #         temp3.append(-diff)
+        #     if diff == 0 and temp1[i] > 0:
+        #         temp3.append(temp1[i] - 1)
+        #     if diff == 0 and temp1[i] == 1:
+        #         temp3.append(diff)
+
+        # for i in range(len(temp)):
+        #     for j in range(temp3[i]):
+        #         union.append(temp[i])
+        
+        return union
+
+    def intersection(self, subtreesTree1, subtreesTree2):
+        intersection = []
+
+        for i in range(len(subtreesTree1)):
+            if subtreesTree1[i] in subtreesTree2:
+                intersection.append(subtreesTree1[i])
+
+        return intersection
+        # return [i for i in subtreesTree1 if i in subtreesTree2]
+
+    def jaccardIndex(self, tree1, tree2):
+        subtreesTree1 = self.tuplesSubtree(tree1)
+        subtreesTree2 = self.tuplesSubtree(tree2)
+
+        union = self.union(subtreesTree1, subtreesTree2)
+        intersection = self.intersection(subtreesTree1, subtreesTree2)
+
+        return len(intersection) / len(union)
+
+    def similarityMatrix(self, list1):
+        matrix = np.zeros((len(list1), len(list1)))
+        list2 = list1
+        for i in range(len(list1)):
+            for j in range(len(list2)):
+                matrix[i][j] = round(self.jaccardIndex(list1[i], list2[j]), 2)
+                if matrix[i][j] > 1:
+                    print(len(self.tuplesSubtree(list1[i])))
+                    print("array0: ", self.tuplesSubtree(list1[i]))
+                    print()
+                    print(len(self.tuplesSubtree(list1[i])))
+                    print("array1: ", self.tuplesSubtree(list1[i]))
+                    print()
+                    print(len(self.union(self.tuplesSubtree(list1[i]), self.tuplesSubtree(list2[j]))))
+                    print("array2: ", self.union(self.tuplesSubtree(list1[i]), self.tuplesSubtree(list1[i])))
+                    print()
+                    print(len(self.intersection(self.tuplesSubtree(list1[i]), self.tuplesSubtree(list1[i]))))
+                    print("array3: ", self.intersection(self.tuplesSubtree(list1[i]), self.tuplesSubtree(list1[i])))
+                if i == 10 and j == 10:
+                    break
+
+        for i in range(11):
+            for j in range(11):
+                print(matrix[i][j], end="  ")
+            print()
+        return matrix
+
+
 # end class GPTree
                    
 def init_population(): # ramped half-and-half
@@ -140,23 +308,22 @@ def fitness(individual, dataset): # inverse mean absolute error over dataset nor
 def selection(population, fitnesses): # select one individual using tournament selection
     tournament = [randint(0, len(population)-1) for i in range(TOURNAMENT_SIZE)] # select tournament contenders
     tournament_fitnesses = [fitnesses[tournament[i]] for i in range(TOURNAMENT_SIZE)]
-    return deepcopy(population[tournament[tournament_fitnesses.index(max(tournament_fitnesses))]])
-
-def similarityMatrix(self, list1):
-        matrix = np.zeros((len(list1), len(list1)))
-        list2 = list1
-        for i in list1:
-            for j in llist2:
-                matrix[i][j] = Tree.jaccardIndex(i, j)
-
-        print(matrix)
-        return matrix
+    return deepcopy(population[tournament[tournament_fitnesses.index(max(tournament_fitnesses))]]) 
             
 def main():
     # init stuff
     seed() # init internal state of random number generator
     man, zoor, dataset = generate_dataset()
     population= init_population()
+    t = GPTree()
+    # array = t.similarityMatrix(population)
+    # array = t.union([1,2,3,2,5,3,1,1,2,3], [1,2,3,2,5,3,1,8])
+    array = t.union([1,2,3,2,5,3,1,1,2,3], [1,2,3,2,5,3,1,8])
+    print(array)
+    sys.exit()
+    for i in range(len(array[0])):
+        print(array[i][i], end=", ")
+    sys.exit()
     best_of_run = None
     best_of_run_f = 0
     best_of_run_gen = 0

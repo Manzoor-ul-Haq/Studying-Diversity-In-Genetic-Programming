@@ -2,16 +2,16 @@ import numpy as np
 
 class Node(object):
 	"""docstring for Node"""
-	def __init__(self, value):
+	def __init__(self, data):
 		self.left = None
 		self.right = None
 		self.parent = None
-		self.value = value
+		self.data = data
 
 	def inorder(node):
 		if node:
 			inorder(node.left)
-			print(node.value)
+			print(node.data)
 			inorder(node.right)
 
 class Tree():
@@ -85,7 +85,7 @@ class Tree():
 
 		for t1 in range(1, len(i_children) + 1):
 			for t2 in range(1, len(j_children) + 1):
-				if i_children[t1 - 1].value == j_children[t2 - 1].value:
+				if i_children[t1 - 1].data == j_children[t2 - 1].data:
 					distances[t1][t2] = distances[t1 - 1][t2 - 1]
 				else:
 					a = distances[t1][t2 - 1]
@@ -107,11 +107,11 @@ class Tree():
 
 		for i in range(len(T)):
 			if T[i].left and T[i].right:
-				subTrees.append((T[i].left.value, T[i].right.value, T[i].value))
+				subTrees.append((T[i].left.data, T[i].right.data, T[i].data))
 			elif T[i].left:
-				subTrees.append((T[i].left.value, T[i].value))
+				subTrees.append((T[i].left.data, T[i].data))
 			elif T[i].right:
-				subTrees.append((T[i].right.value, T[i].value))
+				subTrees.append((T[i].right.data, T[i].data))
 
 		print(subTrees)
 		return subTrees
@@ -122,14 +122,16 @@ class Tree():
 	def intersection(self, subtreesTree1, subtreesTree2):
 		return [i for i in subtreesTree1 if i in subtreesTree2]
 
-	def jaccardIndex(self, tree1, tree2):
-		subtreesTree1 = self.tuplesSubtree(tree1)
-		subtreesTree2 = self.tuplesSubtree(tree2)
+def jaccardIndex(tree1, tree2):
+	t = Node(1)
+	subtreesTree1 = Tree(t)
+	subtreesTree1.tuplesSubtree(tree1)
+	subtreesTree2 = Tree(t).tuplesSubtree(tree2)
 
-		union = self.union(subtreesTree1, subtreesTree2)
-		intersection = self.intersection(subtreesTree1, subtreesTree2)
+	union = Tree(t).union(subtreesTree1, subtreesTree2)
+	intersection = Tree.intersection(subtreesTree1, subtreesTree2)
 
-		return len(intersection) / len(union)
+	return len(intersection) / len(union)
 
 t1 = Node('f')
 t1.left = Node('c')
@@ -173,12 +175,12 @@ t2.left.left.right = Node('b')
 # Tree2 = Tree(tree2)
 
 # l_i = Tree2.leftmostChild(tree2)
-# print(l_i.value)
+# print(l_i.data)
 
 # T2 = Tree2.keyRoots(tree2)
 
 # for i in range(len(T2)):
-# 	print(T2[i].value, end=", ")
+# 	print(T2[i].data, end=", ")
 
 # print()
 # print()
@@ -200,9 +202,9 @@ for i1 in range(len(T1)):
 		j = T2[j1]
 		treedist[i1][j1] = T.treedist(i, j)
 
-T.printDistances(treedist, len(T1) - 1, len(T2) - 1)
-print()
-print("Distance between T1 & T2: ", treedist[len(T1) - 1][len(T2) - 1])
+# T.printDistances(treedist, len(T1) - 1, len(T2) - 1)
+# print()
+# print("Distance between T1 & T2: ", treedist[len(T1) - 1][len(T2) - 1])
 
-print()
-print(T.jaccardIndex(t1, t2))
+# print()
+# print(T.jaccardIndex(t1, t2))
