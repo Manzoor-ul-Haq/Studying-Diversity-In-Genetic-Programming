@@ -5,6 +5,8 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 import sys
 import numpy as np
+from os import path
+import seaborn as sns
 
 POP_SIZE        = 60   # population size
 MIN_DEPTH       = 2    # minimal initial random tree depth
@@ -175,10 +177,10 @@ class GPTree:
                     t2 = temp2.pop(temp2.index(temp2[j]))
                     union.append(t1)
                     i = -1
-                    j = -1
+                    j = 0
                     break
                 j += 1
-            i += 1 
+            i += 1
         # print(union)
         # print(temp1)
         # print(temp2)
@@ -242,7 +244,7 @@ class GPTree:
 
     def intersection(self, subtreesTree1, subtreesTree2):
         intersection = []
-        
+
         for i in range(len(subtreesTree1)):
             if subtreesTree1[i] in subtreesTree2:
                 intersection.append(subtreesTree1[i])
@@ -257,33 +259,20 @@ class GPTree:
         intersection = self.intersection(subtreesTree1, subtreesTree2)
         union = self.union(subtreesTree1, subtreesTree2)
 
+        if not subtreesTree1 and not subtreesTree2 and not intersection and not union:
+            return 0
+        
         return len(intersection) / len(union)
 
     def similarityMatrix(self, list1):
         matrix = np.zeros((len(list1), len(list1)))
+        
         list2 = list1
+
         for i in range(len(list1)):
             for j in range(len(list2)):
-                matrix[i][j] = round(self.jaccardIndex(list1[i], list2[j]), 2)
-                if matrix[i][j] > 1:
-                    print(len(self.tuplesSubtree(list1[i])))
-                    print("array0: ", self.tuplesSubtree(list1[i]))
-                    print()
-                    print(len(self.tuplesSubtree(list1[i])))
-                    print("array1: ", self.tuplesSubtree(list1[i]))
-                    print()
-                    print(len(self.union(self.tuplesSubtree(list1[i]), self.tuplesSubtree(list2[j]))))
-                    print("array2: ", self.union(self.tuplesSubtree(list1[i]), self.tuplesSubtree(list1[i])))
-                    print()
-                    print(len(self.intersection(self.tuplesSubtree(list1[i]), self.tuplesSubtree(list1[i]))))
-                    print("array3: ", self.intersection(self.tuplesSubtree(list1[i]), self.tuplesSubtree(list1[i])))
-                if i == 10 and j == 10:
-                    break
+                matrix[i][j] = self.jaccardIndex(list1[i], list2[j])
 
-        for i in range(11):
-            for j in range(11):
-                print(matrix[i][j], end="  ")
-            print()
         return matrix
 
 
@@ -319,16 +308,21 @@ def main():
     array = t.similarityMatrix(population)
     # array = t.union([1,2,3,2,5,3,1,1,2,3], [1,2,3,2,5,3,1,8])
     # array = t.union([1,2,3,2,5,3,1,1,2,3], [1,2,3,2,5,3,1,8])
+    # array = t.union([], [])
     # print(array)
-    sys.exit()
-    for i in range(len(array[0])):
-        print(array[i][i], end=", ")
-    sys.exit()
+    # sys.exit()
+    outpath = "C:/Users/admin/Documents/Namal/Fall 2021/CSE-491 Final Year Project-1/Studying-Diversity-In-Genetic-Programming/Graphs"
+    plt.title("Generation 0")
+    # plt.imshow(array, interpolation='nearest')
+    ax = sns.heatmap(array, linewidth=0.5)
+    plt.savefig(path.join(outpath,"Generation_0.png"))
+    # plt.show()
+    # sys.exit()
     best_of_run = None
     best_of_run_f = 0
     best_of_run_gen = 0
     fitnesses = [fitness(population[i], dataset) for i in range(POP_SIZE)]
-
+    counter = 0
     # go evolution!
     for gen in range(GENERATIONS):  
         nextgen_population=[]
@@ -339,6 +333,12 @@ def main():
             parent1.mutation()
             nextgen_population.append(parent1)
         population = nextgen_population
+        counter += 1
+        array = t.similarityMatrix(population)
+        plt.title("Generation " + str(counter))
+        # plt.imshow(array, interpolation='nearest')
+        ax = sns.heatmap(array, linewidth=0.5)
+        plt.savefig(path.join(outpath,"Generation_" + str(counter) + ".png"))
         fitnesses = [fitness(population[i], dataset) for i in range(POP_SIZE)]
         if max(fitnesses) > best_of_run_f:
             best_of_run_f = max(fitnesses)
@@ -348,6 +348,7 @@ def main():
             print("gen:", gen, ", best_of_run_f:", round(max(fitnesses),3), ", best_of_run:") 
             best_of_run.print_tree()
         if best_of_run_f == 1: break   
+        # plt.show()
     
     print("\n\n_________________________________________________\nEND OF RUN\nbest_of_run attained at gen " + str(best_of_run_gen) +\
           " and has f=" + str(round(best_of_run_f,3)))
