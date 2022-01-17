@@ -7,14 +7,17 @@ import sys
 import numpy as np
 from os import path
 import seaborn as sns
+import importlib
+from plotnine import *
+import pandas as pd
 
 POP_SIZE        = 60   # population size
 MIN_DEPTH       = 2    # minimal initial random tree depth
 MAX_DEPTH       = 5    # maximal initial random tree depth
 GENERATIONS     = 250  # maximal number of generations to run evolution
 TOURNAMENT_SIZE = 5    # size of tournament for tournament selection
-XO_RATE         = 0.8  # crossover rate 
-PROB_MUTATION   = 0.2  # per-node mutation probability 
+XO_RATE         = 0.8  # crossover rate
+PROB_MUTATION   = 0.2  # per-node mutation probability
 
 def add(x, y): return x + y
 def sub(x, y): return x - y
@@ -136,6 +139,7 @@ class GPTree:
 
     def tuplesSubtree(self, tree):
         T = self.childrenPostOrderedList(tree)
+        
         subTrees = []
 
         for i in range(len(T)):
@@ -146,30 +150,16 @@ class GPTree:
             elif T[i].right:
                 subTrees.append((T[i].right.data, T[i].data))
 
-        # print(subTrees)
         return subTrees
 
     def union(self, subtreesTree1, subtreesTree2):
-        # if subtreesTree1 == subtreesTree2:
-        #     return subtreesTree1 or subtreesTree2
-        
         union = []
 
         temp1 = subtreesTree1
         temp2 = subtreesTree2
-        # counter = 0
-        # while(counter < (len(temp1) * len(temp2))):
-        #     # print(len(temp1), len(temp2))
-        #     for i in range(len(temp1)):
-        #         for j in range(len(temp2)):
-        #             if temp1[i] == temp2[j]:
-        #                 t1 = temp1.pop(temp1.index(temp1[i]))
-        #                 t2 = temp2.pop(temp2.index(temp2[j]))
-        #                 union.append(t1)
-        #                 break
-        #         break
-        #     counter += 1
+
         i, j = 0, 0
+
         while(i < len(temp1)):
             while(j < len(temp2)):
                 if temp1[i] == temp2[j]:
@@ -181,64 +171,12 @@ class GPTree:
                     break
                 j += 1
             i += 1
-        # print(union)
-        # print(temp1)
-        # print(temp2)
 
         for i in range(len(temp1)):
             union.append(temp1[i])
 
         for i in range(len(temp2)):
             union.append(temp2[i])
-
-        # print(union)
-        # sys.exit()
-        
-        # for i in range(len(subtreesTree1)):
-        #     if not subtreesTree1[i] in subtreesTree2:
-        #         union.append(subtreesTree1[i])
-
-        # for i in range(len(subtreesTree2)):
-        #     if not subtreesTree2[i] in subtreesTree1:
-        #         union.append(subtreesTree2[i])
-
-        # for i in range(len(subtreesTree1)):
-        #     for j in range(len(subtreesTree2)):
-        #         if (subtreesTree1[i] == subtreesTree2[j]) and not subtreesTree2[j] in union:
-        #             union.append(subtreesTree1[i])        
-
-        # for i in range(len(subtreesTree1)):
-        #     for j in range(len(subtreesTree2)):
-        #         if (subtreesTree1[i] == subtreesTree2[j]) and not subtreesTree2[j] in temp:
-        #             temp.append(subtreesTree1[i])
-
-        # for i in temp:
-        #     count = 0
-        #     for j in subtreesTree1:
-        #         if i == j:
-        #             count += 1
-        #     temp1.append(count)
-            
-        #     count = 0
-        #     for j in subtreesTree2:
-        #         if i == j:
-        #             count += 1
-        #     temp2.append(count)
-
-        # for i in range(len(temp)):
-        #     diff = temp1[i] - temp2[i]
-        #     if diff > 0:
-        #         temp3.append(diff)
-        #     if diff < 0:
-        #         temp3.append(-diff)
-        #     if diff == 0 and temp1[i] > 0:
-        #         temp3.append(temp1[i] - 1)
-        #     if diff == 0 and temp1[i] == 1:
-        #         temp3.append(diff)
-
-        # for i in range(len(temp)):
-        #     for j in range(temp3[i]):
-        #         union.append(temp[i])
         
         return union
 
@@ -250,7 +188,6 @@ class GPTree:
                 intersection.append(subtreesTree1[i])
 
         return intersection
-        # return [i for i in subtreesTree1 if i in subtreesTree2]
 
     def jaccardIndex(self, tree1, tree2):
         subtreesTree1 = self.tuplesSubtree(tree1)
@@ -259,8 +196,8 @@ class GPTree:
         intersection = self.intersection(subtreesTree1, subtreesTree2)
         union = self.union(subtreesTree1, subtreesTree2)
 
-        if not subtreesTree1 and not subtreesTree2 and not intersection and not union:
-            return 0
+        if (not subtreesTree1 and not subtreesTree2) and (not intersection and not union):
+            return 1
         
         return len(intersection) / len(union)
 
@@ -274,7 +211,6 @@ class GPTree:
                 matrix[i][j] = self.jaccardIndex(list1[i], list2[j])
 
         return matrix
-
 
 # end class GPTree
                    
@@ -306,18 +242,19 @@ def main():
     population= init_population()
     t = GPTree()
     array = t.similarityMatrix(population)
-    # array = t.union([1,2,3,2,5,3,1,1,2,3], [1,2,3,2,5,3,1,8])
-    # array = t.union([1,2,3,2,5,3,1,1,2,3], [1,2,3,2,5,3,1,8])
-    # array = t.union([], [])
-    # print(array)
-    # sys.exit()
+
+    # columns = []
+    # for i in range(60):
+    #     columns.append("T" + str(i+1))
+    # print(columns)
+
     outpath = "C:/Users/admin/Documents/Namal/Fall 2021/CSE-491 Final Year Project-1/Studying-Diversity-In-Genetic-Programming/Graphs"
-    plt.title("Generation 0")
-    # plt.imshow(array, interpolation='nearest')
-    ax = sns.heatmap(array, linewidth=0.5)
+    
+    #graphs
+    ax = sns.heatmap(array, linewidth=0.5, vmin=0, vmax=1)
+    ax.set_title("Generation 0")
     plt.savefig(path.join(outpath,"Generation_0.png"))
-    # plt.show()
-    # sys.exit()
+
     best_of_run = None
     best_of_run_f = 0
     best_of_run_gen = 0
@@ -335,10 +272,12 @@ def main():
         population = nextgen_population
         counter += 1
         array = t.similarityMatrix(population)
-        plt.title("Generation " + str(counter))
-        # plt.imshow(array, interpolation='nearest')
-        ax = sns.heatmap(array, linewidth=0.5)
+
+        #Graphs
+        ax = sns.heatmap(array, linewidth=0.5, vmin=0, vmax=1, cbar=False)
+        ax.set_title("Generation " + str(counter))
         plt.savefig(path.join(outpath,"Generation_" + str(counter) + ".png"))
+
         fitnesses = [fitness(population[i], dataset) for i in range(POP_SIZE)]
         if max(fitnesses) > best_of_run_f:
             best_of_run_f = max(fitnesses)
