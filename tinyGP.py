@@ -201,7 +201,7 @@ class GPTree:
         
         return len(intersection) / len(union)
 
-    def similarityMatrix(self, list1):
+    def jaccard_similarityMatrix(self, list1):
         matrix = np.zeros((len(list1), len(list1)))
         
         list2 = list1
@@ -210,6 +210,59 @@ class GPTree:
             for j in range(len(list2)):
                 matrix[i][j] = self.jaccardIndex(list1[i], list2[j])
 
+        return matrix
+
+    def treedist(self, i, j):
+        i_children = self.childrenPostOrderedList(i)
+        j_children = self.childrenPostOrderedList(j)
+
+        distances = np.zeros((len(i_children) + 1, len(j_children) + 1))
+
+        for t1 in range(len(i_children) + 1):
+            distances[t1][0] = t1
+
+        for t2 in range(len(j_children) + 1):
+            distances[0][t2] = t2
+
+        a = 0
+        b = 0
+        c = 0
+
+        for t1 in range(1, len(i_children) + 1):
+            for t2 in range(1, len(j_children) + 1):
+                if i_children[t1 - 1].data == j_children[t2 - 1].data:
+                    distances[t1][t2] = distances[t1 - 1][t2 - 1]
+                else:
+                    a = distances[t1][t2 - 1]
+                    b = distances[t1 - 1][t2]
+                    c = distances[t1 - 1][t2 - 1]
+
+                    if a <= b and a <= c:
+                        distances[t1][t2] = a + 1
+                    elif b <= a and b <= c:
+                        distances[t1][t2] = b + 1
+                    else:
+                        distances[t1][t2] = c + 1
+
+        # self.printDistances(distances, len(i_children), len(j_children))
+        return distances[len(i_children), len(j_children)]
+
+    def ted_similarityMatrix(self, list1):
+        matrix = np.zeros((len(list1), len(list1)))
+        
+        list2 = list1
+
+        for i in range(len(list1)):
+            for j in range(len(list2)):
+                matrix[i][j] = self.treedist(list1[i], list2[j])
+
+        for i in range(len(list1)):
+            for j in range(len(list2)):
+                matrix[i][j] /= -matrix.max()
+                matrix[i][j] += 1
+        
+        # print(matrix[20][19])
+        # sys.exit()
         return matrix
 
 # end class GPTree
@@ -241,19 +294,28 @@ def main():
     man, zoor, dataset = generate_dataset()
     population= init_population()
     t = GPTree()
-    array = t.similarityMatrix(population)
+    ted = t.ted_similarityMatrix(population)
+    jaccard = t.jaccard_similarityMatrix(population)
 
     # columns = []
     # for i in range(60):
     #     columns.append("T" + str(i+1))
     # print(columns)
 
-    outpath = "C:/Users/admin/Documents/Namal/Fall 2021/CSE-491 Final Year Project-1/Studying-Diversity-In-Genetic-Programming/Graphs"
+    outpath = "C:/Users/admin/Documents/Namal/Fall 2021/CSE-491 Final Year Project-1/Studying-Diversity-In-Genetic-Programming/GraphsTED"
     
     #graphs
-    ax = sns.heatmap(array, linewidth=0.5, vmin=0, vmax=1)
+    ax = sns.heatmap(ted, linewidth=0.5, vmin=0, vmax=1)
     ax.set_title("Generation 0")
     plt.savefig(path.join(outpath,"Generation_0.png"))
+    
+    outpath = "C:/Users/admin/Documents/Namal/Fall 2021/CSE-491 Final Year Project-1/Studying-Diversity-In-Genetic-Programming/GraphsJaccard"
+
+    ax = sns.heatmap(jaccard, linewidth=0.5, vmin=0, vmax=1, cbar=False)
+    ax.set_title("Generation 0")
+    plt.savefig(path.join(outpath,"Generation_0.png"))
+
+    # sys.exit()
 
     best_of_run = None
     best_of_run_f = 0
@@ -271,13 +333,22 @@ def main():
             nextgen_population.append(parent1)
         population = nextgen_population
         counter += 1
-        array = t.similarityMatrix(population)
+        ted = t.ted_similarityMatrix(population)
+        jaccard = t.jaccard_similarityMatrix(population)
+    
+        outpath = "C:/Users/admin/Documents/Namal/Fall 2021/CSE-491 Final Year Project-1/Studying-Diversity-In-Genetic-Programming/GraphsTED"
 
         #Graphs
-        ax = sns.heatmap(array, linewidth=0.5, vmin=0, vmax=1, cbar=False)
+        ax = sns.heatmap(ted, linewidth=0.5, vmin=0, vmax=1, cbar=False)
         ax.set_title("Generation " + str(counter))
         plt.savefig(path.join(outpath,"Generation_" + str(counter) + ".png"))
 
+        outpath = "C:/Users/admin/Documents/Namal/Fall 2021/CSE-491 Final Year Project-1/Studying-Diversity-In-Genetic-Programming/GraphsJaccard"
+
+        ax = sns.heatmap(jaccard, linewidth=0.5, vmin=0, vmax=1, cbar=False)
+        ax.set_title("Generation " + str(counter))
+        plt.savefig(path.join(outpath,"Generation_" + str(counter) + ".png"))
+        
         fitnesses = [fitness(population[i], dataset) for i in range(POP_SIZE)]
         if max(fitnesses) > best_of_run_f:
             best_of_run_f = max(fitnesses)
